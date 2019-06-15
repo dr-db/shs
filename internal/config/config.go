@@ -11,8 +11,12 @@ import (
 
 type Config struct {
 	AllowedIPs []string
+	CertFile   string
+	KeyFile    string
 	Port       int
 	Root       string
+
+	TLS bool
 }
 
 func MustParseConfig(args []string) *Config {
@@ -27,6 +31,8 @@ func parseConfig(args []string) (*Config, error) {
 	cfg := &Config{}
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
+	fs.StringVar(&cfg.CertFile, "cert-file", "", "HTTPS cert file")
+	fs.StringVar(&cfg.KeyFile, "key-file", "", "HTTPS key file")
 	fs.IntVar(&cfg.Port, "p", 8080, "port to serve")
 	fs.StringVar(&cfg.Root, "d", ".", "directory to serve")
 	var rawAllowedIPs string
@@ -36,6 +42,12 @@ func parseConfig(args []string) (*Config, error) {
 		return nil, errors.Wrap(err, "parsing arguments")
 	}
 
+	if cfg.CertFile != "" || cfg.KeyFile != "" { // If either is set
+		cfg.TLS = true
+		if cfg.CertFile == "" || cfg.KeyFile == "" { // Both must be set
+			return nil, errors.New("--cert-file and --key-file must be present or absent together")
+		}
+	}
 	if rawAllowedIPs != "" {
 		cfg.AllowedIPs = strings.Split(rawAllowedIPs, ",")
 	}
