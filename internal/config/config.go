@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 )
 
@@ -47,8 +48,12 @@ func parseConfig(args []string) (*Config, error) {
 			return nil, errors.New("--cert-file and --key-file must be present or absent together")
 		}
 	}
+	if rawAllowedIPs == "" {
+		rawAllowedIPs = os.Getenv("SHS_ALLOWED_IPS")
+	}
 	if rawAllowedIPs != "" {
 		cfg.AllowedIPs = strings.Split(rawAllowedIPs, ",")
+		log.Printf("Allowed IPs: %q", cfg.AllowedIPs)
 	}
 	return cfg, nil
 }
