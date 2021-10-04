@@ -1,12 +1,11 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 type Config struct {
@@ -22,7 +21,7 @@ type Config struct {
 func MustParseConfig(args []string) *Config {
 	cfg, err := parseConfig(args)
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "loading config"))
+		log.Fatal(fmt.Errorf("loading config: %w", err))
 	}
 	return cfg
 }
@@ -39,7 +38,7 @@ func parseConfig(args []string) (*Config, error) {
 	fs.StringVar(&rawAllowedIPs, "allowed-ips", "", "IP addresses to allow (comma-separated).  Default allows all.")
 
 	if err := fs.Parse(args); err != nil {
-		return nil, errors.Wrap(err, "parsing arguments")
+		return nil, fmt.Errorf("parsing arguments: %w", err)
 	}
 
 	if cfg.CertFile != "" || cfg.KeyFile != "" { // If either is set
